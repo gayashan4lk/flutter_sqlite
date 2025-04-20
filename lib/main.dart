@@ -3,8 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() async {
+  // added for windows
+  sqfliteFfiInit();
+  // added for windows
+  databaseFactory = databaseFactoryFfi;
+
   WidgetsFlutterBinding.ensureInitialized();
 
   final db_path = await getDatabasesPath();
