@@ -54,4 +54,13 @@ class DatabaseService {
         Dog(id: id, name: name, age: age),
     ];
   }
+  
+  Future<int> deleteDog(int id) async {
+    final db = await database;
+    return await db.delete(
+      'dogs',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
 }

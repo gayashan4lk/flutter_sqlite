@@ -46,6 +46,24 @@ class DogViewModel extends ChangeNotifier {
     }
   }
   
+  Future<bool> deleteDog(int id) async {
+    _setLoading(true);
+    try {
+      final success = await _repository.deleteDog(id);
+      if (success) {
+        await loadDogs(); // Reload the list after successful deletion
+      } else {
+        _error = 'Failed to delete dog with ID: $id';
+      }
+      return success;
+    } catch (e) {
+      _error = 'Error deleting dog: ${e.toString()}';
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+  
   void _setLoading(bool loading) {
     _isLoading = loading;
     notifyListeners();

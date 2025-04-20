@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/dog_view_model.dart';
+import '../models/dog.dart';
 
 class DogListView extends StatefulWidget {
   const DogListView({super.key});
@@ -101,6 +102,10 @@ class _DogListViewState extends State<DogListView> {
                       ),
                       title: Text(dog.name),
                       subtitle: Text('Age: ${dog.age}'),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () => _confirmDeleteDog(context, dog),
+                      ),
                     );
                   },
                 );
@@ -127,5 +132,45 @@ class _DogListViewState extends State<DogListView> {
         );
       });
     }
+  }
+
+  void _confirmDeleteDog(BuildContext context, Dog dog) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Dog'),
+        content: Text('Are you sure you want to delete ${dog.name}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              // Make sure dog.id is not null before proceeding
+              if (dog.id != null) {
+                Navigator.pop(context);
+                
+                final viewModel = Provider.of<DogViewModel>(context, listen: false);
+                viewModel.deleteDog(dog.id!).then((success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        success
+                            ? '${dog.name} was deleted successfully'
+                            : 'Failed to delete ${dog.name}',
+                      ),
+                      backgroundColor: success ? Colors.green : Colors.red,
+                    ),
+                  );
+                });
+              }
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -13,4 +13,9 @@ class DogRepository {
   Future<void> insertDog(Dog dog) async {
     await _dbService.insertDog(dog);
   }
+
+  Future<bool> deleteDog(int id) async {
+    final deletedRows = await _dbService.deleteDog(id);
+    return deletedRows > 0;
+  }
 }
