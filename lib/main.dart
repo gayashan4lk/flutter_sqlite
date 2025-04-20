@@ -3,8 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() async {
+  sqfliteFfiInit();
+  databaseFactory = databaseFactoryFfi;
+
   WidgetsFlutterBinding.ensureInitialized();
 
   final db_path = await getDatabasesPath();
@@ -35,8 +39,7 @@ void main() async {
     final List<Map<String, Object?>> queryResult = await db.query('dogs');
 
     return [
-      for (final {'id': id as int, 'name': name as String, 'age': age as int}
-          in queryResult)
+      for (final {'id': id as int, 'name': name as String, 'age': age as int} in queryResult)
         Dog(id: id, name: name, age: age),
     ];
   }
