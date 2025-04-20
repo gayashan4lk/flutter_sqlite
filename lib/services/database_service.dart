@@ -1,20 +1,22 @@
-import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:flutter/material.dart';
 import '../models/dog.dart';
 
-class DogDatabase {
-  static final DogDatabase instance = DogDatabase._init();
+class DatabaseService {
+  static final DatabaseService instance = DatabaseService._init();
   static Database? _database;
 
-  DogDatabase._init();
+  DatabaseService._init();
 
   Future<Database> get database async {
     if (_database != null) return _database!;
+    
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
     WidgetsFlutterBinding.ensureInitialized();
+    
     _database = await _initDB('doggie_db.db');
     return _database!;
   }
@@ -22,6 +24,7 @@ class DogDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
+    
     return await openDatabase(
       path,
       version: 1,
@@ -34,7 +37,7 @@ class DogDatabase {
   }
 
   Future<void> insertDog(Dog dog) async {
-    final db = await instance.database;
+    final db = await database;
     await db.insert(
       'dogs',
       dog.toMap(),
@@ -43,11 +46,11 @@ class DogDatabase {
   }
 
   Future<List<Dog>> getDogs() async {
-    final db = await instance.database;
+    final db = await database;
     final List<Map<String, Object?>> queryResult = await db.query('dogs');
+    
     return [
-      for (final {'id': id as int, 'name': name as String, 'age': age as int}
-          in queryResult)
+      for (final {'id': id as int, 'name': name as String, 'age': age as int} in queryResult)
         Dog(id: id, name: name, age: age),
     ];
   }

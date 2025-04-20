@@ -1,63 +1,24 @@
 import 'package:flutter/material.dart';
-import '../models/dog.dart';
-import '../database/dog_database.dart';
+import 'package:provider/provider.dart';
+import '../viewmodels/dog_view_model.dart';
 
-class DogListScreen extends StatefulWidget {
-  const DogListScreen({super.key});
+class DogListView extends StatefulWidget {
+  const DogListView({super.key});
 
   @override
-  State<DogListScreen> createState() => _DogListScreenState();
+  State<DogListView> createState() => _DogListViewState();
 }
 
-class _DogListScreenState extends State<DogListScreen> {
+class _DogListViewState extends State<DogListView> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _ageController = TextEditingController();
-  
-  List<Dog> _dogs = [];
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadDogs();
-  }
 
   @override
   void dispose() {
     _nameController.dispose();
     _ageController.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadDogs() async {
-    setState(() => _isLoading = true);
-    final dogs = await DogDatabase.instance.getDogs();
-    setState(() {
-      _dogs = dogs;
-      _isLoading = false;
-    });
-  }
-
-  Future<void> _addDog() async {
-    if (_formKey.currentState!.validate()) {
-      final name = _nameController.text;
-      final age = int.parse(_ageController.text);
-      
-      final dog = Dog(name: name, age: age);
-      await DogDatabase.instance.insertDog(dog);
-      
-      _nameController.clear();
-      _ageController.clear();
-      
-      await _loadDogs();
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Dog added successfully')),
-        );
-      }
-    }
   }
 
   @override
@@ -76,7 +37,6 @@ class _DogListScreenState extends State<DogListScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-
                   TextFormField(
                     controller: _nameController,
                     decoration: const InputDecoration(labelText: 'Name'),
@@ -104,7 +64,7 @@ class _DogListScreenState extends State<DogListScreen> {
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: _addDog,
+                    onPressed: () => _addDog(context),
                     child: const Text('Add Dog'),
                   ),
                 ],
@@ -117,26 +77,55 @@ class _DogListScreenState extends State<DogListScreen> {
           
           // Dog list
           Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _dogs.isEmpty
-                    ? const Center(child: Text('No dogs added yet'))
-                    : ListView.builder(
-                        itemCount: _dogs.length,
-                        itemBuilder: (context, index) {
-                          final dog = _dogs[index];
-                          return ListTile(
-                            leading: CircleAvatar(
-                              child: Text(dog.id.toString()),
-                            ),
-                            title: Text(dog.name),
-                            subtitle: Text('Age: ${dog.age}'),
-                          );
-                        },
+            child: Consumer<DogViewModel>(
+              builder: (context, viewModel, child) {
+                if (viewModel.isLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                
+                if (viewModel.error != null) {
+                  return Center(child: Text(viewModel.error!));
+                }
+                
+                if (viewModel.dogs.isEmpty) {
+                  return const Center(child: Text('No dogs added yet'));
+                }
+                
+                return ListView.builder(
+                  itemCount: viewModel.dogs.length,
+                  itemBuilder: (context, index) {
+                    final dog = viewModel.dogs[index];
+                    return ListTile(
+                      leading: CircleAvatar(
+                        child: Text(dog.id.toString()),
                       ),
+                      title: Text(dog.name),
+                      subtitle: Text('Age: ${dog.age}'),
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),
     );
+  }
+
+  void _addDog(BuildContext context) {
+    if (_formKey.currentState!.validate()) {
+      final viewModel = Provider.of<DogViewModel>(context, listen: false);
+      final name = _nameController.text;
+      final age = int.parse(_ageController.text);
+      
+      viewModel.addDog(name, age).then((_) {
+        _nameController.clear();
+        _ageController.clear();
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Dog added successfully')),
+        );
+      });
+    }
   }
 }

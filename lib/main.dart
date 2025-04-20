@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'models/dog.dart';
-import 'database/dog_database.dart';
-import 'screens/dog_list_screen.dart';
+import 'services/database_service.dart';
+import 'repositories/dog_repository.dart';
+import 'viewmodels/dog_view_model.dart';
+import 'views/dog_list_view.dart';
 
 void main() async {
+  // Initialize Flutter binding
   WidgetsFlutterBinding.ensureInitialized();
-  await DogDatabase.instance.insertDog(const Dog(name: 'Buddy', age: 2));
-  final dogs = await DogDatabase.instance.getDogs();
-  print(dogs);
+
   runApp(const MainApp());
 }
 
@@ -16,15 +18,25 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Dog Database App',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
+    // Create services and repositories
+    final dbService = DatabaseService.instance;
+    final dogRepository = DogRepository(dbService: dbService);
+
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => DogViewModel(repository: dogRepository),
+        ),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Dog Database App',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+          useMaterial3: true,
+        ),
+        home: const DogListView(),
       ),
-      home: const DogListScreen(),
     );
   }
 }
-
