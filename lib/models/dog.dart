@@ -1,4 +1,3 @@
-
 class Dog {
   final int? id;
   final String name;
@@ -7,10 +6,7 @@ class Dog {
   const Dog({this.id, required this.name, required this.age});
 
   Map<String, dynamic> toMap() {
-    final map = <String, dynamic>{
-      'name': name,
-      'age': age,
-    };
+    final map = <String, dynamic>{'name': name, 'age': age};
     // Only include ID if it's not null (for updates)
     if (id != null) {
       map['id'] = id;

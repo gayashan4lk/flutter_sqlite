@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'models/dog.dart';
 import 'services/database_service.dart';
 import 'repositories/dog_repository.dart';
 import 'viewmodels/dog_view_model.dart';
